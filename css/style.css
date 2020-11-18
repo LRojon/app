@@ -1,0 +1,30 @@
+.marginTop
+{
+    margin-top: 5.5%;
+}
+
+/* #501e38 */
+
+.treeClass *:hover{
+    background-color: #501e38;
+}
+
+.dhx_tree-list-item__icon, .dhx_tree-list-item__text, .dhx_tree-toggle-button{
+    color: lightgray;
+}
+
+.treeClass .dhx_tree-folder--selected, .treeClass .dhx_tree-list-item--selected{
+    background-color: #501e38;
+    right: 0px;
+    left: 0px;
+}
+
+.treeClass .dhx_tree-folder:hover, .dhx_tree-list__item:hover{
+    background-color: #331424;
+    right: 0px;
+    left: 0px;
+}
+
+/**{
+    border: solid black 1px;
+}*/
