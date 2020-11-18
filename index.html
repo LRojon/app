@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,10 +10,259 @@
     <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.js"></script>
-    
+
+    <style>
+        .col-6
+        {
+            border: solid 1px #e95420;
+        }
+    </style>
+
     <title>Covid Tracker</title>
 </head>
-<body>
-    
+<body class="bg-dark" style="overflow: hidden;">
+    <div class="fluid-container">
+        <div class="row">
+            <div class="col-12 text-center text-light" style="font-size: xx-small;" id="info">Date</div>
+        </div>
+        <div class="row">
+            <div class="col-6">
+                <table class="table table-borderless table-sm text-light" style="font-size: xx-small;">
+                    <tr>
+                        <th class="text-center" colspan="3">Monde</th>
+                    </tr>
+                    <tr>
+                        <th>Cas confirmés</th>
+                        <td class="text-right" id="totalConfirmed"></td>
+                        <td class="text-right" id="totalNewConfirmed"></td>
+                    </tr>
+                    <tr>
+                        <th>Morts</th>
+                        <td class="text-right" id="totalDeath"></td>
+                        <td class="text-right" id="totalNewDeath"></td>
+                    </tr>
+                    <tr>
+                        <th>Soignés</th>
+                        <td class="text-right" id="totalRecovered"></td>
+                        <td class="text-right" id="totalNewRecovered"></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-6">
+                <table class="table table-borderless table-sm text-light" style="font-size: xx-small;">
+                    <tr>
+                        <th class="text-center" colspan="3">France</th>
+                    </tr>
+                    <tr>
+                        <th>Cas confirmés</th>
+                        <td class="text-right" id="franceConfirmed"></td>
+                        <td class="text-right" id="franceNewConfirmed"></td>
+                    </tr>
+                    <tr>
+                        <th>Morts</th>
+                        <td class="text-right" id="franceDeath"></td>
+                        <td class="text-right" id="franceNewDeath"></td>
+                    </tr>
+                    <tr>
+                        <th>Soins Intensif</th>
+                        <td class="text-right" id="franceIntensifCare"></td>
+                        <td class="text-right" id="franceNewIntensifCare"></td>
+                    </tr>
+                    <tr>
+                        <th>Hospitalisés</th>
+                        <td class="text-right" id="franceHospitalised"></td>
+                        <td class="text-right" id="franceNewHospitalised"></td>
+                    </tr>
+                    <tr>
+                        <th>Soignés</th>
+                        <td class="text-right" id="franceRecovered"></td>
+                        <td class="text-right" id="franceNewRecovered"></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-6">
+                <table class="table table-borderless table-sm text-light" style="font-size: xx-small; margin-bottom: -2%;">
+                    <tr class="text-center">
+                        <td style="width: 20%; font-size:medium;"><a onclick="previewRegion()"><i class="fas fa-angle-left"></i></a></td>
+                        <th style="width: 60%;" id="region">Région</th>
+                        <td style="width: 20%; font-size:medium;"><a onclick="nextRegion()"><i class="fas fa-angle-right"></i></a></td>
+                    </tr>
+                </table>
+                <table class="table table-borderless table-sm text-light" style="font-size: xx-small;">
+                    <tr>
+                        <th>Cas confirmés</th>
+                        <td class="text-right" id="regionConfirmed"></td>
+                        <td class="text-right" id="regionNewConfirmed"></td>
+                    </tr>
+                    <tr>
+                        <th>Morts</th>
+                        <td class="text-right" id="regionDeath"></td>
+                        <td class="text-right" id="regionNewDeath"></td>
+                    </tr>
+                    <tr>
+                        <th>Soins Intensif</th>
+                        <td class="text-right" id="regionIntensifCare"></td>
+                        <td class="text-right" id="regionNewIntensifCare"></td>
+                    </tr>
+                    <tr>
+                        <th>Hospitalisés</th>
+                        <td class="text-right" id="regionHospitalised"></td>
+                        <td class="text-right" id="regionNewHospitalised"></td>
+                    </tr>
+                    <tr>
+                        <th>Soignés</th>
+                        <td class="text-right" id="regionRecovered"></td>
+                        <td class="text-right" id="regionNewRecovered"></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-6">
+                <div id="tip"> </div>
+                <div id="cmap"></div>
+            </div>
+        </div>
+    </div>
 </body>
+
+<script type="text/javascript" src="cmap/france.js"></script>
+<script type="text/javascript" src="cmap/cmap.js"></script>
+<script>
+    let region = null;
+    let france = null;
+    let total = null;
+
+    displayAll();
+    setInterval(displayAll, 23*60*1000);
+    setInterval(nextRegion, 30000)
+
+    function displayAll()
+    {
+        let date = (new Date(Date.now()).toISOString().split('T')[0])
+        let xhr = new XMLHttpRequest();
+        xhr.responseType = "json";
+        xhr.open("GET", "https://api.covid19tracking.narrativa.com/api/" + date + "/country/france");
+        xhr.onreadystatechange = function(){
+            if(xhr.readyState == 4 && xhr.status == 200)
+            {
+                france = xhr.response.dates[date].countries.France;
+                region = 0;
+                total = xhr.response.total;
+
+                $("#info").html(setDate(xhr.response.dates[date].info.date_generation))
+
+                displayWorld();
+                displayFrance();
+                displayRegion();
+            }
+        }
+        xhr.send();
+    }
+
+    function setDate(str)
+    {
+        let time = str.split(' ')[1];
+        let date = str.split(' ')[0];
+
+        date = date.split('-')[2] + "/" + date.split('-')[1] + "/" + date.split('-')[0];
+
+        return "Généré le " + date + " à " + time;
+    }
+
+    function displayWorld()
+    {
+        $("#totalConfirmed").html(total.today_confirmed);
+        $("#totalNewConfirmed").html(total.today_new_confirmed);
+        $("#totalDeath").html(total.today_deaths);
+        $("#totalNewDeath").html(total.today_new_deaths);
+        $("#totalRecovered").html(total.today_recovered);
+        $("#totalNewRecovered").html(total.today_new_recovered);
+
+        total.today_new_confirmed > 0 ? 
+            $("#totalNewConfirmed").removeClass("text-success").addClass("text-danger").html(total.today_new_confirmed + " <i class='fas fa-angle-up'></i>") : 
+            $("#totalNewConfirmed").removeClass("text-danger").addClass("text-success").html(total.today_new_confirmed + " <i class='fas fa-angle-down'></i>");
+
+        total.today_new_deaths > 0 ? 
+            $("#totalNewDeath").removeClass("text-success").addClass("text-danger").html(total.today_new_deaths + " <i class='fas fa-angle-up'></i>") : 
+            $("#totalNewDeath").removeClass("text-danger").addClass("text-success").html(total.today_new_deaths + " <i class='fas fa-angle-down'></i>");
+
+        total.today_new_recovered < 0 ? 
+            $("#totalNewRecovered").removeClass("text-success").addClass("text-danger").html(total.today_new_recovered + " <i class='fas fa-angle-down'></i>") : 
+            $("#totalNewRecovered").removeClass("text-danger").addClass("text-success").html(total.today_new_recovered + " <i class='fas fa-angle-up'></i>");
+    }
+
+    function displayFrance()
+    {
+        $("#franceConfirmed").html(france.today_confirmed);
+        $("#franceNewConfirmed").html(france.today_new_confirmed);
+        $("#franceDeath").html(france.today_deaths);
+        $("#franceNewDeath").html(france.today_new_deaths);
+        $("#franceIntensifCare").html(france.today_intensive_care);
+        $("#franceNewIntensifCare").html(france.today_new_intensive_care);
+        $("#franceHospitalised").html(france.today_total_hospitalised_patients);
+        $("#franceNewHospitalised").html(france.today_new_total_hospitalised_patients);
+        $("#franceRecovered").html(france.today_recovered);
+        $("#franceNewRecovered").html(france.today_new_recovered);
+
+        france.today_new_confirmed > 0 ? 
+            $("#franceNewConfirmed").removeClass("text-success").addClass("text-danger").html(france.today_new_confirmed + " <i class='fas fa-angle-up'></i>") : 
+            $("#franceNewConfirmed").removeClass("text-danger").addClass("text-success").html(france.today_new_confirmed + " <i class='fas fa-angle-down'></i>");
+
+        france.today_new_deaths > 0 ? 
+            $("#franceNewDeath").removeClass("text-success").addClass("text-danger").html(france.today_new_deaths + " <i class='fas fa-angle-up'></i>") : 
+            $("#franceNewDeath").removeClass("text-danger").addClass("text-success").html(france.today_new_deaths + " <i class='fas fa-angle-down'></i>");
+
+        france.today_new_intensive_care > 0 ? 
+            $("#franceNewIntensifCare").removeClass("text-success").addClass("text-danger").html(france.today_new_intensive_care + " <i class='fas fa-angle-up'></i>") : 
+            $("#franceNewIntensifCare").removeClass("text-danger").addClass("text-success").html(france.today_new_intensive_care + " <i class='fas fa-angle-down'></i>");
+
+        france.today_new_total_hospitalised_patients > 0 ? 
+            $("#franceNewHospitalised").removeClass("text-success").addClass("text-danger").html(france.today_new_total_hospitalised_patients + " <i class='fas fa-angle-up'></i>") : 
+            $("#franceNewHospitalised").removeClass("text-danger").addClass("text-success").html(france.today_new_total_hospitalised_patients + " <i class='fas fa-angle-down'></i>");
+
+        france.today_new_recovered < 0 ? 
+            $("#franceNewRecovered").removeClass("text-success").addClass("text-danger").html(france.today_new_recovered + " <i class='fas fa-angle-down'></i>") : 
+            $("#franceNewRecovered").removeClass("text-danger").addClass("text-success").html(france.today_new_recovered + " <i class='fas fa-angle-up'></i>");
+
+    }
+
+    function displayRegion()
+    {
+        let reg = france.regions[region];
+
+        $("#region").html(reg.name);
+        $("#regionConfirmed").html(reg.today_confirmed);
+        $("#regionNewConfirmed").html(reg.today_new_confirmed);
+        $("#regionDeath").html(reg.today_deaths);
+        $("#regionNewDeath").html(reg.today_new_deaths);
+        $("#regionIntensifCare").html(reg.today_intensive_care);
+        $("#regionNewIntensifCare").html(reg.today_new_intensive_care);
+        $("#regionHospitalised").html(reg.today_total_hospitalised_patients);
+        $("#regionNewHospitalised").html(reg.today_new_total_hospitalised_patients);
+        $("#regionRecovered").html(reg.today_recovered);
+        $("#regionNewRecovered").html(reg.today_new_recovered);
+
+        reg.today_new_confirmed > 0 ? $("#regionNewConfirmed").removeClass("text-success").addClass("text-danger").append(" <i class='fas fa-angle-up'></i>") : $("#regionNewConfirmed").removeClass("text-danger").addClass("text-success").append(" <i class='fas fa-angle-down'></i>");
+        reg.today_new_deaths > 0 ? $("#regionNewDeath").removeClass("text-success").addClass("text-danger").append(" <i class='fas fa-angle-up'></i>") : $("#regionNewDeath").removeClass("text-danger").addClass("text-success").append(" <i class='fas fa-angle-down'></i>");
+        reg.today_new_intensive_care > 0 ? $("#regionNewIntensifCare").removeClass("text-success").addClass("text-danger").append(" <i class='fas fa-angle-up'></i>") : $("#regionNewIntensifCare").removeClass("text-danger").addClass("text-success").append(" <i class='fas fa-angle-down'></i>");
+        reg.today_new_total_hospitalised_patients > 0 ? $("#regionNewHospitalised").removeClass("text-success").addClass("text-danger").append(" <i class='fas fa-angle-up'></i>") : $("#regionNewHospitalised").removeClass("text-danger").addClass("text-success").append(" <i class='fas fa-angle-down'></i>");
+        reg.today_new_recovered < 0 ? $("#regionNewRecovered").removeClass("text-success").addClass("text-danger").append(" <i class='fas fa-angle-down'></i>") : $("#regionNewRecovered").removeClass("text-danger").addClass("text-success").append(" <i class='fas fa-angle-up'></i>");
+    }
+
+    function nextRegion(){
+        console.log("test")
+        if(france != null)
+        {
+            region = (region + 1) % france.regions.length;
+            displayRegion();
+        }
+    }
+
+    function previewRegion(){
+        region = (region - 1) < 0 ? france.regions.length - 1 : region - 1;
+        displayRegion();
+    }
+</script>
+
 </html>
