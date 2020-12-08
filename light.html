@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css">
+    <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.js"></script>
+
+    <style>
+        .col-6 {
+            border: solid 1px #e95420;
+        }
+    </style>
+
+    <title>Covid Tracker</title>
+</head>
+
+<body class="bg-dark" style="overflow: hidden;">
+    <div class="fluid-container">
+        <div class="row">
+            <div class="col-12 text-center text-light" style="font-size: xx-small;"><a class="btn btn-link" href="index.html"><i class="fas fa-reply"></i> Retour</a></div>
+        </div>
+        <div class="row">
+            <div class="col-6">
+                <button id="status" style="width: 230px; margin: 5px; height: fit-content;" class="btn btn-primary">ON</button>
+            </div>
+            <div class="col-6 fluid-container">
+                <div class="form-group">
+                    <table>
+                        <tr>
+                            <td>
+                                <button id="color" class="btn btn-primary">Set Color</button>
+                            </td>
+                            <td>
+                                <button id="random" class="btn btn-primary">Random Color</button>
+                            </td>
+                        </tr>
+                    </table>
+                    <label for="brightness">Brightness: </label>
+                    <input type="range" id="brightness" min="0" max="100">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-6">
+                <button id="rgb" class="btn btn-primary">RGB</button>
+            </div>
+            <div class="col-6">
+                <button id="night" class="btn btn-primary">Night</button>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    
+</script>
+</html>
