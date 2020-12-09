@@ -1,11 +1,12 @@
 import json
+from light import Light
 from flask import Flask, request, current_app, g, jsonify
 from flask_restful import Resource, Api
 
 app = Flask(__name__)
 api = Api(app)
 
-api.add_resource(DAO, '/DAO/<command>')
+api.add_resource(Light, '/<command>')
 
 
 @app.after_request

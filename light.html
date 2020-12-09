@@ -16,6 +16,26 @@
         .col-6 {
             border: solid 1px #e95420;
         }
+        .power{
+            text-align: center;
+            border-radius: 50%;
+            margin: 5px;
+            padding: 10px;
+            font-size: xx-large;
+        }
+        .power.on{
+            background-color: green;
+        }
+        .power.off{
+            background-color: red;
+        }
+        .random-button{
+            border-style: solid;
+            color: white;
+            position: relative;
+            top: -80px;
+            left: -12px;
+        }
     </style>
 
     <title>Covid Tracker</title>
@@ -27,37 +47,120 @@
             <div class="col-12 text-center text-light" style="font-size: xx-small;"><a class="btn btn-link" href="index.html"><i class="fas fa-reply"></i> Retour</a></div>
         </div>
         <div class="row">
-            <div class="col-6">
-                <button id="status" style="width: 230px; margin: 5px; height: fit-content;" class="btn btn-primary">ON</button>
-            </div>
-            <div class="col-6 fluid-container">
-                <div class="form-group">
-                    <table>
-                        <tr>
-                            <td>
-                                <button id="color" class="btn btn-primary">Set Color</button>
-                            </td>
-                            <td>
-                                <button id="random" class="btn btn-primary">Random Color</button>
-                            </td>
-                        </tr>
-                    </table>
-                    <label for="brightness">Brightness: </label>
-                    <input type="range" id="brightness" min="0" max="100">
-                </div>
+            <div class="col-12">
+                <span id="power" class="fas fa-power-off power off"></span>
+                <input type="range" id="bright" value="0" min="0" max="100" style="width: 80%; border-width: 20px;">
             </div>
         </div>
         <div class="row">
-            <div class="col-6">
-                <button id="rgb" class="btn btn-primary">RGB</button>
+            <div class="col-5">
+                <input type="color" id="set" class="bg-dark border-dark" style="width: 100px; height: 100px; border-style: solid;">
+                <button id="random" class="fas fa-dice bg-dark border-dark random-button"></button>
             </div>
-            <div class="col-6">
-                <button id="night" class="btn btn-primary">Night</button>
+            <div class="col-7">
             </div>
         </div>
     </div>
 </body>
 <script>
+
+    getStatus()
+    setInterval(getStatus, 30000)
+
+    $('#bright').change(function(){
+        let bright = $(this).val();
+        $.ajax({
+            type: 'GET',
+            url: 'http://127.0.0.1:5002/bright',
+            crossDomain: true,
+            dataType: 'json',
+            data: {
+                bright: bright
+            },
+            mimeType: "application/json",
+            success: function(data){
+                if(data.return == "on")
+                    $("#power").removeClass("off").addClass("on")
+                else
+                    $("#power").removeClass("on").addClass("off")
+            }
+        })
+    })
     
+    $('#set').change(function(){
+        let rgb = hexToRgb($(this).val());
+        $.ajax({
+            type: 'GET',
+            url: 'http://127.0.0.1:5002/set',
+            crossDomain: true,
+            dataType: 'json',
+            data: rgb,
+            success: function(){$("#power").removeClass("off").addClass("on")}
+        })
+    })
+
+    $('#random').click(function(){
+        $.ajax({
+            method: 'GET',
+            url: 'http://127.0.0.1:5002/random',
+            crossDomain: true,
+            success: function (data) 
+            {
+                let tmp = rgbToHex(data.return[0], data.return[1], data.return[2])
+                $("#set").val(tmp)
+            }
+        })
+    })
+
+    function hexToRgb(hex) {
+        var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16)
+        } : null;
+    }
+
+    function rgbToHex(r, g, b)
+    {
+        r = r.toString(16)
+        if ((r.length % 2) > 0) { r = "0" + r }
+        g = g.toString(16)
+        if ((g.length % 2) > 0) { g = "0" + g }
+        b = b.toString(16)
+        if ((b.length % 2) > 0) { b = "0" + b }
+        return "#" + r + g + b
+    }
+
+    function getHexColor(num) {
+        num >>>= 0;
+        var b = num & 0xFF,
+            g = (num & 0xFF00) >>> 8,
+            r = (num & 0xFF0000) >>> 16;
+        return rgbToHex(r,g,b);
+    }
+
+    function getStatus(){
+        $.ajax({
+            method: 'GET',
+            url: 'http://127.0.0.1:5002/status',
+            crossDomain: true,
+            dataType: 'json',
+            success: function(data){
+                if(data.return.data.power == "off")
+                {
+                    $("#power").removeClass("on").addClass("off");
+                    $("#bright").val(0);
+                }
+                else
+                {
+                    $("#power").removeClass("off").addClass("on");
+                    $("#bright").val(data.return.data.bright);
+                }
+                console.log(data.return.data)
+                $("#set").val(getHexColor(data.return.data.rgb))
+            }
+        })
+    }
 </script>
 </html>
